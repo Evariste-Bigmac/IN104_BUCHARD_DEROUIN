@@ -27,15 +27,25 @@ double ecart(double* data, int longueur) {
 }
 
 double* mvect (double* matrice, int longueur_ech, int nb_ech) {
-	double* res = malloc(nb_ech * sizeof(double));
-	for(int k = 0; k < nb_ech; k ++) {
-		double intermedivecteur[longueur_ech];
-		for(int i = 0; i < longueur_ech; i ++) {
+	printf("mvect : debut\n");
+
+	double* res = malloc(sizeof(double) * nb_ech);
+
+	printf("mvect : alloc OK\n");
+
+	double intermedivecteur[longueur_ech];
+
+	for(int k = 0; k < nb_ech; k++) {
+		for(int i = 0; i < longueur_ech; i++) {
 			intermedivecteur[i] = matrice[i + k*longueur_ech];
+			//intermedivecteur[i] = matrice[i + k*nb_ech];
+			//printf("i,k : %d %d\n", i, k);
 		}
-		double M = moyenne(intermedivecteur, longueur_ech);
-		res[k] = M;
-}
+
+		res[k] = moyenne(intermedivecteur, longueur_ech);
+	}
+
+	printf("mvect OK\n");
 	return (res);
 }
 
@@ -43,9 +53,10 @@ double* ecvect (double* matrice, int longueur_ech, int nb_ech) {
 	double* resu = malloc(nb_ech * sizeof(double));
 	for(int k = 0; k < nb_ech; k ++) {
 		double intermedivecteur[longueur_ech];
-		for(int i = 0; i < longueur_ech; i ++) {
+		for(int i = 0; i < longueur_ech; i++) {
 			intermedivecteur[i] = matrice[i + k*longueur_ech];
 		}
+		//printf("ecvect : avant ecart\n");
 		double M = ecart(intermedivecteur, longueur_ech);
 		resu[k] = M;
 }
