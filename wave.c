@@ -20,7 +20,7 @@ unsigned char buffer4[4];
 unsigned char buffer2[2];
 
 char* seconds_to_time(float seconds);
-void dump_fichier(int *data);
+void dump_fichier(int *data, int num_samples);
 void dump_fichier_double(double *data, int size);
 char *my_itoa(int num, char *str);
 char *my_dtoa(double num, char *str);
@@ -33,7 +33,6 @@ char *my_dtoa(double num, char *str);
 
 int main(int argc, char **argv) {
 
- int *tableau = malloc(sizeof(int)*512);
 
  filename = (char*) malloc(sizeof(char) * 1024);
  if (filename == NULL) {
@@ -169,6 +168,11 @@ int main(int argc, char **argv) {
  long num_samples = (8 * header.data_size) / (header.channels * header.bits_per_sample);
  printf("Number of samples:%lu \n", num_samples);
 
+
+ // ------------------------------------------------------ num_samples ! -----------------------------------------------
+ int *tableau = malloc(sizeof(int)*num_samples);
+ // --------------------------------------------------------------------------------------------------------------------
+
  long size_of_each_sample = (header.channels * header.bits_per_sample) / 8;
  printf("Size of each sample:%ld bytes\n", size_of_each_sample);
 
@@ -218,8 +222,8 @@ int main(int argc, char **argv) {
             }					
 
             printf("\n\nValid range for data values : %ld to %ld \n", low_limit, high_limit);
-            for (i =1; i <= 512; i++) {					// Pour modifier nb samples
-                printf("==========Sample %ld / %ld=============\n", i, num_samples);
+            for (i =1; i <= num_samples; i++) {					// Pour modifier nb samples
+                //printf("==========Sample %ld / %ld=============\n", i, num_samples);
                 read = fread(data_buffer, sizeof(data_buffer), 1, ptr);
                 if (read == 1) {
                 
@@ -228,7 +232,7 @@ int main(int argc, char **argv) {
                     int data_in_channel = 0;
                     int offset = 0; // move the offset for every iteration in the loop below
                     for (xchannels = 0; xchannels < header.channels; xchannels ++ ) {
-                        printf("Channel#%d : ", (xchannels+1));
+                        //printf("Channel#%d : ", (xchannels+1));
                         // convert data from little endian to big endian based on bytes in each channel sample
                         if (bytes_in_each_channel == 4) {
                             data_in_channel = (data_buffer[offset] & 0x00ff) | 
@@ -246,7 +250,7 @@ int main(int argc, char **argv) {
                         }
 
                         offset += bytes_in_each_channel;		
-                        printf("%d ", data_in_channel);
+                        //printf("%d ", data_in_channel);
 
                         tableau[i-1] = data_in_channel;
 
@@ -254,10 +258,10 @@ int main(int argc, char **argv) {
                         if (data_in_channel < low_limit || data_in_channel > high_limit)
                             printf("**value out of range\n");
 
-                        printf(" | ");
+                        //printf(" | ");
                     }
 
-                    printf("\n");
+                    //printf("\n");
                 }
                 else {
                     printf("Error reading file. %d bytes\n", read);
@@ -275,7 +279,7 @@ int main(int argc, char **argv) {
  fclose(ptr);
 
 
- dump_fichier(tableau);
+ dump_fichier(tableau, num_samples);
  printf("Fichier dump\n");
 
 
@@ -287,7 +291,7 @@ int main(int argc, char **argv) {
  //int length = 511;
 
  //int length = 512 / sizeof(tableau[0]);
- int length = 512;
+ int length = num_samples;
 
  printf("sizeof(tableau) : %d\nsizeof(tableau[0]) : %d\n", sizeof(tableau), sizeof(tableau[0]));
 
@@ -303,8 +307,13 @@ int main(int argc, char **argv) {
 
  stft(tableau, samples, windowSize, hop_size, magnitude, sample_freq, length);
 
- for (int ct = 0; ct < samples; ct++){
+ 
+ for (int ct = 0; ct < 10; ct++){
     printf("magnitude[%d] : %f\n", ct, magnitude[ct]);
+ }
+
+ for (int k = samples - 265; k < samples - 255; k++){
+    printf("magnitude %i : %f\n", k, magnitude[k]);
  }
 
  //dump_fichier_double(magnitude, samples);
@@ -319,7 +328,8 @@ int main(int argc, char **argv) {
  printf("nRows = %d\n", nRows);
 
  //dump_csv(1, magnitude, length, samples);     // Probablement ok
- dump_csv(argv[2], magnitude, nCols, nRows);
+ //dump_csv(argv[2], magnitude, nCols, nRows);
+ dump_csv("0", magnitude, nCols, nRows);
 
 
  //--------------------------------
@@ -388,7 +398,7 @@ char *my_dtoa(double num, char *str){           // A refaire
 
 
 
-void dump_fichier(int *data){
+void dump_fichier(int *data, int num_samples){
     printf("Debut dump_fichier\n");
 
     FILE *f;
@@ -399,7 +409,7 @@ void dump_fichier(int *data){
         return;
     }
 
-    for (int i = 0; i < 512; i++){
+    for (int i = 0; i < num_samples; i++){
         char *c;
         my_itoa(data[i], c);
         strcat(c, "\n");
